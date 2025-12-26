@@ -89,11 +89,12 @@
                 {{ field.value }}
               </Tooltip>
               <div class="w-full" v-else-if="field.name == 'recording_url'">
-                <audio
-                  class="audio-control w-full"
-                  controls
-                  :src="field.value"
-                ></audio>
+                <!-- Audio Player for Recordings -->
+                <CallRecordingPlayer
+                  :call-log-name="callLog.data.name"
+                  :recording-url="field.value"
+                  :duration="callLog.data.duration"
+                />
               </div>
               <div
                 class="w-full cursor-pointer rounded border px-2 pt-1.5 text-base text-ink-gray-7"
@@ -172,6 +173,7 @@ import TaskIcon from '@/components/Icons/TaskIcon.vue'
 import CheckCircleIcon from '@/components/Icons/CheckCircleIcon.vue'
 import NoteModal from '@/components/Modals/NoteModal.vue'
 import TaskModal from '@/components/Modals/TaskModal.vue'
+import CallRecordingPlayer from '@/components/CallLog/CallRecordingPlayer.vue'
 import FadedScrollableDiv from '@/components/FadedScrollableDiv.vue'
 import { getCallLogDetail } from '@/utils/callLog'
 import { isMobileView } from '@/composables/settings'

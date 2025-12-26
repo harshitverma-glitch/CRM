@@ -1,0 +1,176 @@
+{
+ "actions": [],
+ "creation": "2025-12-18 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "enabled",
+  "api_section",
+  "client_id",
+  "client_secret",
+  "column_break_1",
+  "redirect_uri",
+  "authorize_button",
+  "oauth_section",
+  "access_token",
+  "refresh_token",
+  "column_break_oauth",
+  "token_expires_at",
+  "last_token_refresh",
+  "legacy_password_section",
+  "username",
+  "password",
+  "extension",
+  "account_section",
+  "account_id",
+  "extension_id"
+ ],
+ "fields": [
+  {
+   "default": "0",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enable Recording Download",
+   "description": "Automatically download call recordings from RingCentral"
+  },
+  {
+   "fieldname": "api_section",
+   "fieldtype": "Section Break",
+   "label": "API Credentials",
+   "description": "Supports JWT or Password authentication. For Password auth, fill in Client ID, Secret, Username, Password, and Extension."
+  },
+  {
+   "fieldname": "client_id",
+   "fieldtype": "Data",
+   "label": "Client ID",
+   "description": "From RingCentral Developer Portal (JWT app)",
+   "mandatory_depends_on": "enabled"
+  },
+  {
+   "fieldname": "client_secret",
+   "fieldtype": "Password",
+   "label": "Client Secret",
+   "description": "From RingCentral Developer Portal",
+   "mandatory_depends_on": "enabled"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "redirect_uri",
+   "fieldtype": "Data",
+   "label": "OAuth Redirect URI",
+   "description": "Leave blank to auto-generate. Copy this to RingCentral app settings.",
+   "read_only": 1
+  },
+  {
+   "fieldname": "authorize_button",
+   "fieldtype": "Button",
+   "label": "Authorize RingCentral",
+   "description": "Click to connect your RingCentral account"
+  },
+  {
+   "fieldname": "oauth_section",
+   "fieldtype": "Section Break",
+   "label": "OAuth Tokens",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "access_token",
+   "fieldtype": "Password",
+   "label": "Access Token",
+   "description": "Auto-populated after authorization",
+   "read_only": 1
+  },
+  {
+   "fieldname": "refresh_token",
+   "fieldtype": "Password",
+   "label": "Refresh Token",
+   "description": "Auto-populated after authorization",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_oauth",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "token_expires_at",
+   "fieldtype": "Int",
+   "label": "Token Expires At",
+   "description": "Unix timestamp",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_token_refresh",
+   "fieldtype": "Datetime",
+   "label": "Last Token Refresh",
+   "read_only": 1
+  },
+  {
+   "fieldname": "legacy_password_section",
+   "fieldtype": "Section Break",
+   "label": "Legacy Password Auth (Deprecated)",
+   "collapsible": 1,
+   "collapsed": 1
+  },
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "label": "Username",
+   "description": "RingCentral phone number (e.g. +17203316220) - DEPRECATED: Use OAuth instead"
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Password",
+   "label": "Password",
+   "description": "RingCentral account password - DEPRECATED: Use OAuth instead"
+  },
+  {
+   "fieldname": "extension",
+   "fieldtype": "Data",
+   "label": "Extension",
+   "description": "Extension number (e.g. 3000) - DEPRECATED: Use OAuth instead"
+  },
+  {
+   "fieldname": "account_section",
+   "fieldtype": "Section Break",
+   "label": "Account Info"
+  },
+  {
+   "fieldname": "account_id",
+   "fieldtype": "Data",
+   "label": "Account ID",
+   "description": "Use ~ for current account",
+   "default": "~"
+  },
+  {
+   "fieldname": "extension_id",
+   "fieldtype": "Data",
+   "label": "Extension ID",
+   "description": "Use ~ for current extension",
+   "default": "~"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2025-12-18 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "FCRM",
+ "name": "CRM RingCentral Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
+

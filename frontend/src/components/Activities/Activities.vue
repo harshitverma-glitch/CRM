@@ -91,7 +91,29 @@
                 />
               </div>
             </div>
-            <CallArea class="mb-4" :activity="call" />
+            <div class="flex-1">
+              <CallArea class="mb-4" :activity="call" />
+              <!-- Audio Player for Recordings -->
+              <CallRecordingPlayer
+                v-if="call.recording_url"
+                :call-log-name="call.name"
+                :recording-url="call.recording_url"
+                :duration="call.duration"
+                class="ml-0 mb-4"
+              />
+              <!-- View Transcript Button -->
+              <Button
+                v-if="call.recording_url"
+                variant="outline"
+                :label="__('View Transcript')"
+                @click="openTranscriptModal(call)"
+                class="ml-0 mb-4"
+              >
+                <template #prefix>
+                  <FeatherIcon name="file-text" class="w-4 h-4" />
+                </template>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -455,12 +477,18 @@
       }
     "
   />
+  <CallTranscriptModal
+    v-model="showTranscriptModal"
+    :call-log-name="selectedCallLogName"
+  />
 </template>
 <script setup>
 import ActivityHeader from '@/components/Activities/ActivityHeader.vue'
 import EmailArea from '@/components/Activities/EmailArea.vue'
 import CommentArea from '@/components/Activities/CommentArea.vue'
 import CallArea from '@/components/Activities/CallArea.vue'
+import CallRecordingPlayer from '@/components/CallLog/CallRecordingPlayer.vue'
+import CallTranscriptModal from '@/components/CallLog/CallTranscriptModal.vue'
 import NoteArea from '@/components/Activities/NoteArea.vue'
 import TaskArea from '@/components/Activities/TaskArea.vue'
 import AttachmentArea from '@/components/Activities/AttachmentArea.vue'
@@ -499,7 +527,7 @@ import { globalStore } from '@/stores/global'
 import { usersStore } from '@/stores/users'
 import { whatsappEnabled, callEnabled } from '@/composables/settings'
 import { capture } from '@/telemetry'
-import { Button, Tooltip, createResource } from 'frappe-ui'
+import { Button, FeatherIcon, Tooltip, createResource } from 'frappe-ui'
 import { useElementVisibility } from '@vueuse/core'
 import {
   ref,
@@ -538,6 +566,8 @@ const tabIndex = defineModel('tabIndex')
 const reload_email = ref(false)
 const modalRef = ref(null)
 const showFilesUploader = ref(false)
+const showTranscriptModal = ref(false)
+const selectedCallLogName = ref('')
 
 const title = computed(() => props.tabs?.[tabIndex.value]?.name || 'Activity')
 
@@ -546,6 +576,11 @@ const changeTabTo = (tabName) => {
   const index = tabNames?.indexOf(tabName)
   if (index == -1) return
   tabIndex.value = index
+}
+
+function openTranscriptModal(call) {
+  selectedCallLogName.value = call.name
+  showTranscriptModal.value = true
 }
 
 const all_activities = createResource({

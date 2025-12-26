@@ -23,7 +23,8 @@ createResource({
 export const callEnabled = ref(false)
 export const twilioEnabled = ref(false)
 export const exotelEnabled = ref(false)
-export const defaultCallingMedium = ref('')
+export const ringcentralEnabled = ref(true) // Enable RingCentral by default
+export const defaultCallingMedium = ref('RingCentral')
 createResource({
   url: 'crm.integrations.api.is_call_integration_enabled',
   cache: 'Is Call Integration Enabled',
@@ -31,8 +32,9 @@ createResource({
   onSuccess: (data) => {
     twilioEnabled.value = Boolean(data.twilio_enabled)
     exotelEnabled.value = Boolean(data.exotel_enabled)
-    defaultCallingMedium.value = data.default_calling_medium
-    callEnabled.value = twilioEnabled.value || exotelEnabled.value
+    ringcentralEnabled.value = Boolean(data.ringcentral_enabled !== undefined ? data.ringcentral_enabled : true)
+    defaultCallingMedium.value = data.default_calling_medium || 'RingCentral'
+    callEnabled.value = twilioEnabled.value || exotelEnabled.value || ringcentralEnabled.value
   },
 })
 

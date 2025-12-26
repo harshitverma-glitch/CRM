@@ -27,6 +27,9 @@ class CRMLead(Document):
 			self.assign_agent(self.lead_owner)
 		if self.has_value_changed("status"):
 			add_status_change_log(self)
+		# Handle mobile number updates - merge call logs from duplicate leads
+		if not self.is_new() and self.has_value_changed("mobile_no") and self.mobile_no:
+			self.handle_mobile_number_update()
 
 	def after_insert(self):
 		if self.lead_owner:
@@ -320,6 +323,108 @@ class CRMLead(Document):
 
 	def convert_to_deal(self, deal=None):
 		return convert_to_deal(lead=self.name, doc=self, deal=deal)
+
+	def handle_mobile_number_update(self):
+		"""
+		Handle mobile number field update
+		When mobile is added/updated, merge call logs from other leads with same number
+		"""
+		if not self.mobile_no:
+			return
+		
+		# Normalize phone number for matching
+		from crm.integrations.ringcentral_utils import normalize_phone_number
+		normalized_phone = normalize_phone_number(self.mobile_no)
+		
+		if not normalized_phone:
+			return
+		
+		frappe.logger().info(f"Mobile number updated for lead {self.name} to {self.mobile_no}")
+		
+		# Merge call logs from other leads with same number
+		self.merge_call_logs_by_phone(normalized_phone)
+	
+	def merge_call_logs_by_phone(self, phone_number):
+		"""
+		Find and merge call logs from other leads with same phone number
+		
+		Args:
+			phone_number: Normalized phone number to search for
+		"""
+		try:
+			# Find other leads with same mobile number (excluding current lead)
+			duplicate_leads = frappe.db.sql("""
+				SELECT name, lead_name, mobile_no
+				FROM `tabCRM Lead`
+				WHERE mobile_no = %s AND name != %s
+			""", (phone_number, self.name), as_dict=True)
+			
+			if not duplicate_leads:
+				frappe.logger().info(f"No duplicate leads found for phone {phone_number}")
+				return
+			
+			frappe.logger().info(f"Found {len(duplicate_leads)} duplicate leads with phone {phone_number}")
+			
+			# Get all call logs from duplicate leads
+			for dup_lead in duplicate_leads:
+				# Find call logs linked to duplicate lead
+				call_logs = frappe.db.get_all(
+					"CRM Call Log",
+					filters={
+						"reference_doctype": "CRM Lead",
+						"reference_docname": dup_lead.name
+					},
+					pluck="name"
+				)
+				
+				# Also check links table for additional call logs
+				linked_call_logs = frappe.db.sql("""
+					SELECT parent FROM `tabDynamic Link`
+					WHERE link_doctype = 'CRM Lead'
+					AND link_name = %s
+					AND parenttype = 'CRM Call Log'
+				""", (dup_lead.name,), as_dict=True)
+				
+				# Combine both lists
+				all_call_logs = set(call_logs)
+				all_call_logs.update([log.parent for log in linked_call_logs])
+				
+				if not all_call_logs:
+					frappe.logger().info(f"No call logs found for duplicate lead {dup_lead.name}")
+					continue
+				
+				frappe.logger().info(f"Merging {len(all_call_logs)} call logs from {dup_lead.name} to {self.name}")
+				
+				# Re-link call logs to current lead
+				for log_name in all_call_logs:
+					try:
+						call_log = frappe.get_doc("CRM Call Log", log_name)
+						
+						# Update reference fields
+						if call_log.reference_doctype == "CRM Lead" and call_log.reference_docname == dup_lead.name:
+							call_log.db_set("reference_docname", self.name, update_modified=False)
+						
+						# Update links table
+						for link in call_log.links:
+							if link.link_doctype == "CRM Lead" and link.link_name == dup_lead.name:
+								frappe.db.set_value("Dynamic Link", link.name, "link_name", self.name, update_modified=False)
+						
+						frappe.logger().info(f"✅ Re-linked call log {log_name} from {dup_lead.name} to {self.name}")
+						
+					except Exception as e:
+						frappe.logger().error(f"❌ Failed to re-link call log {log_name}: {str(e)}")
+						continue
+				
+				frappe.db.commit()
+				
+				# Log success message
+				frappe.logger().info(f"✅ Successfully merged call logs from lead {dup_lead.name} ({dup_lead.lead_name}) to {self.name}")
+				
+		except Exception as e:
+			frappe.log_error(
+				title=f"Call Log Merge Error for Lead {self.name}",
+				message=f"Error: {str(e)}\n{frappe.get_traceback()}"
+			)
 
 	@staticmethod
 	def get_non_filterable_fields():

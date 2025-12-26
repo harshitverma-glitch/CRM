@@ -1,0 +1,212 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:RCP-{YYYY}-{MM}-{#####}",
+ "creation": "2025-12-17 11:43:54.814995",
+ "description": "Store complete RingCentral webhook payloads for CRM processing",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "call_identification_section",
+  "session_id",
+  "uuid",
+  "caller_number",
+  "called_number",
+  "column_break_5",
+  "caller_name",
+  "call_direction",
+  "extension_id",
+  "payload_section",
+  "raw_payload",
+  "processing_section",
+  "processed",
+  "processing_status",
+  "column_break_processing",
+  "processed_at",
+  "processing_notes",
+  "error_message",
+  "generated_records_section",
+  "crm_lead_created",
+  "crm_call_log_created"
+ ],
+ "fields": [
+  {
+   "fieldname": "call_identification_section",
+   "fieldtype": "Section Break",
+   "label": "Call Identification"
+  },
+  {
+   "description": "RingCentral session identifier",
+   "fieldname": "session_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Session ID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "description": "RingCentral UUID",
+   "fieldname": "uuid",
+   "fieldtype": "Data",
+   "label": "UUID",
+   "unique": 1
+  },
+  {
+   "description": "Phone number of the caller",
+   "fieldname": "caller_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Caller Number",
+   "search_index": 1
+  },
+  {
+   "description": "Phone number that was called",
+   "fieldname": "called_number",
+   "fieldtype": "Data",
+   "label": "Called Number"
+  },
+  {
+   "fieldname": "column_break_5",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Name of the caller if available",
+   "fieldname": "caller_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Caller Name"
+  },
+  {
+   "description": "Call direction",
+   "fieldname": "call_direction",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Direction",
+   "options": "\nInbound\nOutbound"
+  },
+  {
+   "description": "RingCentral extension ID",
+   "fieldname": "extension_id",
+   "fieldtype": "Data",
+   "label": "Extension ID"
+  },
+  {
+   "fieldname": "payload_section",
+   "fieldtype": "Section Break",
+   "label": "Payload Data"
+  },
+  {
+   "description": "Complete RingCentral webhook payload in JSON format",
+   "fieldname": "raw_payload",
+   "fieldtype": "Long Text",
+   "label": "Raw Payload",
+   "reqd": 1
+  },
+  {
+   "fieldname": "processing_section",
+   "fieldtype": "Section Break",
+   "label": "Processing Status"
+  },
+  {
+   "default": "0",
+   "description": "Whether this payload has been processed",
+   "fieldname": "processed",
+   "fieldtype": "Check",
+   "label": "Processed"
+  },
+  {
+   "default": "Pending",
+   "description": "Current processing status",
+   "fieldname": "processing_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Processing Status",
+   "options": "\nPending\nProcessed\nError\nSkipped",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_processing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "When this payload was processed",
+   "fieldname": "processed_at",
+   "fieldtype": "Datetime",
+   "label": "Processed At",
+   "read_only": 1
+  },
+  {
+   "description": "Any notes from processing",
+   "fieldname": "processing_notes",
+   "fieldtype": "Text",
+   "label": "Processing Notes"
+  },
+  {
+   "description": "Error message if processing failed",
+   "fieldname": "error_message",
+   "fieldtype": "Text",
+   "label": "Error Message"
+  },
+  {
+   "fieldname": "generated_records_section",
+   "fieldtype": "Section Break",
+   "label": "Generated Records"
+  },
+  {
+   "description": "Link to created CRM Lead",
+   "fieldname": "crm_lead_created",
+   "fieldtype": "Link",
+   "label": "CRM Lead Created",
+   "options": "CRM Lead"
+  },
+  {
+   "description": "Link to created CRM Call Log",
+   "fieldname": "crm_call_log_created",
+   "fieldtype": "Link",
+   "label": "CRM Call Log Created",
+   "options": "CRM Call Log"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2025-12-17 15:17:23.841207",
+ "modified_by": "Administrator",
+ "module": "FCRM",
+ "name": "RingCentral CRM Payload",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Employee",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "search_fields": "caller_number,called_number,session_id,caller_name",
+ "show_name_in_global_search": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "caller_name"
+}

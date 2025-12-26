@@ -24,7 +24,10 @@
   "type",
   "receiver",
   "caller",
+  "caller_name",
   "recording_url",
+  "ringcentral_recording_url",
+  "transcript",
   "end_time",
   "note",
   "section_break_kebz",
@@ -94,6 +97,20 @@
    "label": "Recording URL"
   },
   {
+   "description": "Original RingCentral URL (preserved for transcript fetching)",
+   "fieldname": "ringcentral_recording_url",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "RingCentral Recording URL",
+   "read_only": 1
+  },
+  {
+   "fieldname": "transcript",
+   "fieldtype": "Long Text",
+   "label": "Call Transcript",
+   "read_only": 1
+  },
+  {
    "fieldname": "end_time",
    "fieldtype": "Datetime",
    "label": "End Time"
@@ -153,11 +170,18 @@
   {
    "fieldname": "section_break_gyqe",
    "fieldtype": "Section Break"
+  },
+  {
+   "depends_on": "eval:doc.type == 'Incomming'",
+   "fieldname": "caller_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Caller Name"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-04-01 16:01:54.479309",
+ "modified": "2025-12-23 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "FCRM",
  "name": "CRM Call Log",
@@ -189,6 +213,7 @@
    "write": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

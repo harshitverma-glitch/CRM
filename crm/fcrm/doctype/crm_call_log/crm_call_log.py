@@ -9,6 +9,51 @@ from crm.utils import seconds_to_duration
 
 
 class CRMCallLog(Document):
+	def after_insert(self):
+		"""Fetch call duration from RingCentral API if this is a RingCentral call"""
+		# Only fetch duration for RingCentral calls
+		if self.medium == "RingCentral" and self.id:
+			# Enqueue background job with 10 second delay to allow call to complete
+			frappe.enqueue(
+				update_call_duration_from_ringcentral,
+				queue='default',
+				timeout=300,
+				call_log_name=self.name,
+				session_id=self.id,
+				enqueue_after_commit=True,
+				at_front=False,
+				now=False
+			)
+		
+		# Sync to Unified Call Log
+		self.sync_to_unified_call_log()
+	
+	def on_update(self):
+		"""Sync to Unified Call Log on update"""
+		self.sync_to_unified_call_log()
+	
+	def sync_to_unified_call_log(self):
+		"""Sync this call log to Unified Call Log in ERPNext"""
+		try:
+			# Check if erpnext is installed
+			if not frappe.db.exists("DocType", "Unified Call Log"):
+				return
+			
+			frappe.enqueue(
+				'erpnext.telephony.doctype.unified_call_log.unified_call_log.sync_crm_call_log',
+				queue='default',
+				timeout=300,
+				crm_call_log_name=self.name,
+				enqueue_after_commit=True,
+				now=False
+			)
+		except Exception as e:
+			# Don't fail the main operation if sync fails
+			frappe.log_error(
+				title=f"Failed to sync CRM Call Log {self.name} to Unified Call Log",
+				message=str(e)
+			)
+	
 	@staticmethod
 	def default_list_data():
 		columns = [
@@ -212,3 +257,78 @@ def create_lead_from_call_log(call_log, lead_details=None):
 	call_log.save(ignore_permissions=True)
 
 	return lead.name
+
+
+def update_call_duration_from_ringcentral(call_log_name: str, session_id: str):
+	"""
+	Background job to fetch and update call duration from RingCentral API
+	
+	Args:
+		call_log_name: Name of the CRM Call Log document
+		session_id: RingCentral session ID (telephonySessionId)
+	"""
+	import time
+	from crm.integrations.ringcentral_client import RingCentralClient
+	from frappe.utils import get_datetime
+	
+	try:
+		# Wait 10 seconds to allow call to complete and appear in RingCentral API
+		time.sleep(10)
+		
+		# Get the call log
+		call_log = frappe.get_doc("CRM Call Log", call_log_name)
+		
+		# Skip if duration already set (manual update)
+		if call_log.duration and call_log.duration > 0:
+			frappe.logger().info(f"Call log {call_log_name} already has duration, skipping")
+			return
+		
+		# Initialize RingCentral client and authenticate
+		client = RingCentralClient()
+		if not client.authenticate_jwt():
+			frappe.logger().error(f"Failed to authenticate with RingCentral for call log {call_log_name}")
+			return
+		
+		# Fetch call log details from RingCentral
+		call_details = client.get_call_log_details(session_id)
+		
+		if not call_details:
+			frappe.logger().info(f"No call details found in RingCentral for session {session_id}")
+			return
+		
+		# Extract duration and timestamps
+		duration = call_details.get("duration", 0)
+		start_time = call_details.get("startTime")  # ISO 8601 format
+		
+		# Update call log
+		updates = {}
+		if duration and duration > 0:
+			updates["duration"] = duration
+			
+		if start_time:
+			try:
+				# Convert ISO 8601 to datetime
+				start_dt = get_datetime(start_time)
+				updates["start_time"] = start_dt
+				
+				# Calculate end time
+				if duration:
+					from frappe.utils import add_to_date
+					end_dt = add_to_date(start_dt, seconds=duration)
+					updates["end_time"] = end_dt
+			except:
+				pass
+		
+		if updates:
+			for field, value in updates.items():
+				call_log.db_set(field, value, update_modified=False)
+			frappe.db.commit()
+			frappe.logger().info(f"✅ Updated call log {call_log_name} with duration: {duration}s")
+		else:
+			frappe.logger().info(f"No duration data available for call log {call_log_name}")
+			
+	except Exception as e:
+		frappe.log_error(
+			title=f"Failed to update call duration for {call_log_name}",
+			message=f"Session ID: {session_id}\nError: {str(e)}\n{frappe.get_traceback()}"
+		)

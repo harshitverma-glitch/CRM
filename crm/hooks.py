@@ -166,6 +166,9 @@ doc_events = {
 		"before_validate": ["crm.api.demo.validate_user"],
 		"validate_reset_password": ["crm.api.demo.validate_reset_password"],
 	},
+	"CRM Call Log": {
+		"after_insert": ["crm.integrations.ringcentral_auto_download.auto_download_recording"],
+	},
 }
 
 # Scheduled Tasks
